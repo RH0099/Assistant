@@ -2,8 +2,8 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Muslim Army</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Muslim Army Vision OS</title>
   <style>
     body {
       margin: 0;
@@ -13,60 +13,59 @@
       overflow: hidden;
     }
     #camera {
+      position: absolute;
       width: 100vw;
       height: 100vh;
       object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
       z-index: -1;
-      filter: brightness(0.8) contrast(1.1);
+      filter: brightness(0.75) contrast(1.1);
     }
     #overlay {
       position: absolute;
       width: 100vw;
       height: 100vh;
-      background: rgba(10, 31, 68, 0.5);
+      background: rgba(10, 31, 68, 0.4);
       pointer-events: none;
     }
     #header {
       position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(0, 45, 115, 0.85);
-      color: #a9d1ff;
-      padding: 10px 25px;
+      top: 15px;
+      left: 15px;
+      background: rgba(0, 45, 115, 0.9);
+      padding: 12px 25px;
       font-size: 20px;
+      font-weight: bold;
+      color: #a9d1ff;
       border-left: 5px solid #66b2ff;
-      border-radius: 5px;
-      font-weight: 600;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #3399ff;
       z-index: 10;
     }
     #info {
       position: absolute;
       bottom: 20px;
-      left: 20px;
+      left: 15px;
       background: rgba(0, 45, 115, 0.85);
-      color: #cce4ff;
       padding: 15px;
-      border-radius: 12px;
+      border-radius: 10px;
+      color: #cce4ff;
       font-size: 16px;
       max-width: 85vw;
       max-height: 150px;
       overflow-y: auto;
-      box-shadow: 0 0 15px #66b2ff;
-      z-index: 10;
       white-space: pre-wrap;
+      box-shadow: 0 0 12px #66b2ff;
+      z-index: 10;
     }
     #status {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 45, 115, 0.85);
-      color: #66b2ff;
+      top: 15px;
+      right: 15px;
+      background: rgba(0, 45, 115, 0.9);
       padding: 12px 20px;
+      color: #66b2ff;
+      font-weight: bold;
       border-radius: 8px;
-      font-weight: 600;
       box-shadow: 0 0 8px #3399ff;
       z-index: 10;
     }
@@ -76,15 +75,15 @@
   <video id="camera" autoplay muted playsinline></video>
   <div id="overlay"></div>
   <div id="header">🧠 Muslim Army Vision OS</div>
-  <div id="info">সিস্টেম চালু হচ্ছে... কথা বলুন...</div>
-  <div id="status">স্ট্যাটাস: শুনছি...</div>
+  <div id="info">সিস্টেম প্রস্তুত। আপনি কথা বলুন...</div>
+  <div id="status">🎙️ স্ট্যাটাস: শুনছি...</div>
 
   <script>
     const camera = document.getElementById('camera');
     const info = document.getElementById('info');
     const status = document.getElementById('status');
 
-    // ক্যামেরা চালু
+    // ক্যামেরা ও মাইক্রোফোন একসাথে চালু
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
         camera.srcObject = stream;
@@ -93,52 +92,58 @@
         info.textContent = 'ক্যামেরা/মাইক্রোফোন চালু হয়নি: ' + err.message;
       });
 
-    // ভয়েস রিকগনিশন
+    // Speech Recognition সেটআপ
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      info.textContent = 'আপনার ব্রাউজারে ভয়েস রিকগনিশন সাপোর্ট নেই।';
+      info.textContent = '⚠️ আপনার ব্রাউজারে ভয়েস রিকগনিশন সাপোর্ট নেই।';
+      throw new Error("SpeechRecognition not supported");
     }
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'bn-BD';
-    recognition.interimResults = false;
     recognition.continuous = true;
+    recognition.interimResults = false;
 
     recognition.onstart = () => {
-      status.textContent = 'স্ট্যাটাস: শুনছি...';
+      status.textContent = '🎙️ শুনছি...';
     };
 
     recognition.onerror = (event) => {
-      status.textContent = 'ত্রুটি: ' + event.error;
+      status.textContent = '❌ ত্রুটি: ' + event.error;
     };
 
     recognition.onend = () => {
-      status.textContent = 'স্ট্যাটাস: পুনরায় শুনছি...';
-      recognition.start(); // রিস্টার্ট স্বয়ংক্রিয়
+      status.textContent = '♻️ পুনরায় শুনছি...';
+      recognition.start(); // পুনরায় চালু
     };
 
     recognition.onresult = async (event) => {
-      const speechText = event.results[event.results.length - 1][0].transcript.trim();
-      info.textContent = `আপনি বললেন: \"${speechText}\"\nAI চিন্তা করছে...`;
+      const text = event.results[event.results.length - 1][0].transcript.trim();
+      info.textContent = `🔍 আপনি বললেন: "${text}"\nAI চিন্তা করছে...`;
 
       try {
-        const encodedQuestion = encodeURIComponent(speechText);
-        const apiURL = `https://chatgpt.apinepdev.workers.dev/?question=${encodedQuestion}`;
-
-        const res = await fetch(apiURL);
+        const encoded = encodeURIComponent(text);
+        const res = await fetch(`https://chatgpt.apinepdev.workers.dev/?question=${encoded}`);
         const answer = await res.text();
-
         info.textContent = answer;
 
+        // Speech Synthesis (বাংলা না পেলে fallback)
         const speak = new SpeechSynthesisUtterance(answer);
         speak.lang = 'bn-BD';
+        speak.onerror = () => {
+          // fallback to English if বাংলা না হয়
+          speak.lang = 'en-US';
+          speechSynthesis.speak(speak);
+        };
+        speechSynthesis.cancel();
         speechSynthesis.speak(speak);
+
       } catch (err) {
-        info.textContent = '⚠️ উত্তর আনতে সমস্যা হয়েছে: ' + err.message;
+        info.textContent = '⚠️ AI উত্তর আনতে সমস্যা হয়েছে: ' + err.message;
       }
     };
 
-    // ভয়েস শুরু
+    // চালু করুন
     recognition.start();
   </script>
 </body>
