@@ -1,150 +1,153 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Muslim Army Vision OS</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>মুসলিম কোড+কুরআন অ্যাসিস্ট্যান্ট</title>
   <style>
     body {
+      font-family: 'Arial', sans-serif;
+      background: #111827;
+      color: #f9fafb;
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0a1f44;
-      color: #66b2ff;
-      overflow: hidden;
+      padding: 20px;
     }
-    #camera {
-      position: absolute;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      z-index: -1;
-      filter: brightness(0.75) contrast(1.1);
+    textarea, pre, select, input[type=text] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #1f2937;
+      color: #10b981;
+      font-family: monospace;
+      border: none;
+      border-radius: 5px;
     }
-    #overlay {
-      position: absolute;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(10, 31, 68, 0.4);
-      pointer-events: none;
-    }
-    #header {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      background: rgba(0, 45, 115, 0.9);
-      padding: 12px 25px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #a9d1ff;
-      border-left: 5px solid #66b2ff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px #3399ff;
-      z-index: 10;
-    }
-    #info {
-      position: absolute;
-      bottom: 20px;
-      left: 15px;
-      background: rgba(0, 45, 115, 0.85);
-      padding: 15px;
-      border-radius: 10px;
-      color: #cce4ff;
+    button {
+      padding: 10px 20px;
+      background: #10b981;
+      border: none;
+      border-radius: 5px;
+      color: white;
       font-size: 16px;
-      max-width: 85vw;
-      max-height: 150px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      box-shadow: 0 0 12px #66b2ff;
-      z-index: 10;
+      cursor: pointer;
+      margin-top: 10px;
     }
-    #status {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: rgba(0, 45, 115, 0.9);
-      padding: 12px 20px;
-      color: #66b2ff;
-      font-weight: bold;
-      border-radius: 8px;
-      box-shadow: 0 0 8px #3399ff;
-      z-index: 10;
+    .output {
+      margin-top: 20px;
+    }
+    audio {
+      margin-top: 10px;
+      width: 100%;
     }
   </style>
 </head>
 <body>
-  <video id="camera" autoplay muted playsinline></video>
-  <div id="overlay"></div>
-  <div id="header">🧠 Muslim Army Vision OS</div>
-  <div id="info">সিস্টেম প্রস্তুত। আপনি কথা বলুন...</div>
-  <div id="status">🎙️ স্ট্যাটাস: শুনছি...</div>
+  <h1>🤖 Muslim Code Assistant 🤖</h1>
+
+  <section>
+    <h2>💻 কোড জেনারেটর</h2>
+    <textarea id="prompt" rows="3" placeholder="কোডের আইডিয়া লিখুন..."></textarea>
+    <button onclick="generateCode()">Generate Code</button>
+    <div class="output">
+      <pre id="codeOutput"></pre>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>📖 কুরআন অ্যাসিস্ট্যান্ট (অডিও সহ)</h2>
+    <select id="surah">
+      <option value="1">সূরা ফাতিহা</option>
+      <option value="2">সূরা বাকারা</option>
+      <option value="3">সূরা ইমরান</option>
+    </select>
+    <button onclick="readQuran()">সূরা পড়ুন</button>
+    <div class="output">
+      <pre id="quranOutput"></pre>
+      <audio id="quranAudio" controls></audio>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>🕌 ইসলামিক প্রশ্ন-উত্তর</h2>
+    <input type="text" id="islamQuestion" placeholder="প্রশ্ন লিখুন...">
+    <button onclick="askIslamAI()">উত্তর জানুন</button>
+    <div class="output">
+      <pre id="islamOutput"></pre>
+    </div>
+  </section>
 
   <script>
-    const camera = document.getElementById('camera');
-    const info = document.getElementById('info');
-    const status = document.getElementById('status');
-
-    // ক্যামেরা ও মাইক্রোফোন একসাথে চালু
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        camera.srcObject = stream;
-      })
-      .catch(err => {
-        info.textContent = 'ক্যামেরা/মাইক্রোফোন চালু হয়নি: ' + err.message;
+    async function generateCode() {
+      const prompt = document.getElementById("prompt").value;
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "https://chatgpt.apinepdev.workers.dev/?question="
+        },
+        body: JSON.stringify({
+          model: "gpt-4",
+          messages: [
+            { role: "system", content: "You are an expert programmer that writes clean and efficient code." },
+            { role: "user", content: `Write a ${prompt}` }
+          ]
+        })
       });
-
-    // Speech Recognition সেটআপ
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      info.textContent = '⚠️ আপনার ব্রাউজারে ভয়েস রিকগনিশন সাপোর্ট নেই।';
-      throw new Error("SpeechRecognition not supported");
+      const data = await response.json();
+      const code = data.choices?.[0]?.message?.content || "❌ কোড তৈরি হয়নি।";
+      document.getElementById("codeOutput").textContent = code;
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'bn-BD';
-    recognition.continuous = true;
-    recognition.interimResults = false;
+    async function readQuran() {
+      const surahNum = document.getElementById("surah").value;
 
-    recognition.onstart = () => {
-      status.textContent = '🎙️ শুনছি...';
-    };
+      const [textRes, audioRes] = await Promise.all([
+        fetch(`https://api.alquran.cloud/v1/surah/${surahNum}/bn.bengali`),
+        fetch(`https://api.alquran.cloud/v1/surah/${surahNum}`)
+      ]);
 
-    recognition.onerror = (event) => {
-      status.textContent = '❌ ত্রুটি: ' + event.error;
-    };
+      const textData = await textRes.json();
+      const audioData = await audioRes.json();
 
-    recognition.onend = () => {
-      status.textContent = '♻️ পুনরায় শুনছি...';
-      recognition.start(); // পুনরায় চালু
-    };
-
-    recognition.onresult = async (event) => {
-      const text = event.results[event.results.length - 1][0].transcript.trim();
-      info.textContent = `🔍 আপনি বললেন: "${text}"\nAI চিন্তা করছে...`;
-
-      try {
-        const encoded = encodeURIComponent(text);
-        const res = await fetch(`https://chatgpt.apinepdev.workers.dev/?question=${encoded}`);
-        const answer = await res.text();
-        info.textContent = answer;
-
-        // Speech Synthesis (বাংলা না পেলে fallback)
-        const speak = new SpeechSynthesisUtterance(answer);
-        speak.lang = 'bn-BD';
-        speak.onerror = () => {
-          // fallback to English if বাংলা না হয়
-          speak.lang = 'en-US';
-          speechSynthesis.speak(speak);
-        };
-        speechSynthesis.cancel();
-        speechSynthesis.speak(speak);
-
-      } catch (err) {
-        info.textContent = '⚠️ AI উত্তর আনতে সমস্যা হয়েছে: ' + err.message;
+      if (textData.status === "OK") {
+        const ayat = textData.data.ayahs.map(a => `${a.numberInSurah}. ${a.text}`).join("\n");
+        document.getElementById("quranOutput").textContent = ayat;
+      } else {
+        document.getElementById("quranOutput").textContent = "❌ সূরা লোড করা যায়নি।";
       }
-    };
 
-    // চালু করুন
-    recognition.start();
+      const audioUrl = audioData?.data?.ayahs?.[0]?.audio;
+      if (audioUrl) {
+        document.getElementById("quranAudio").src = audioUrl;
+      } else {
+        document.getElementById("quranAudio").src = "";
+      }
+    }
+
+    async function askIslamAI() {
+      const question = document.getElementById("islamQuestion").value;
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "https://chatgpt.apinepdev.workers.dev/?question="
+        },
+        body: JSON.stringify({
+          model: "gpt-4",
+          messages: [
+            { role: "system", content: "You are an Islamic scholar AI. Answer based on Quran and authentic Hadith." },
+            { role: "user", content: question }
+          ]
+        })
+      });
+      const data = await response.json();
+      const answer = data.choices?.[0]?.message?.content || "❌ উত্তর পাওয়া যায়নি।";
+      document.getElementById("islamOutput").textContent = answer;
+    }
   </script>
 </body>
 </html>
